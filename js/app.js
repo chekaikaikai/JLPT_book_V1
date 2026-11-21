@@ -130,7 +130,11 @@
     btnPrev: $('btnPrev'), btnNext: $('btnNext'), btnFav: $('btnFav'),
     rateBtns: Array.from(document.querySelectorAll('.rate-btn')),
     btnExport: $('btnExport'), btnImport: $('btnImport'), fileImport: $('fileImport'),
-    filterSummary: $('filterSummary'), filtersBox: $('filtersBox'),
+    tabs: Array.from(document.querySelectorAll('.tab')),
+    views: Array.from(document.querySelectorAll('.view')),
+    tabTitle: $('tabTitle'), btnGoCard: $('btnGoCard'), deckCount: $('deckCount'),
+    deckSummary: $('deckSummary'), storageState: $('storageState'), warnings: $('warnings'),
+    rLevel: $('rLevel'), recordsBody: $('recordsBody'),
     footerNote: $('footerNote'), toast: $('toast')
   };
 
@@ -484,7 +488,37 @@
     });
   }
 
+  function renderRecords() {
+    const level = el.rLevel.value;
+    const tally = {};
+    CATEGORIES.concat('all').forEach((c) => { tally[c] = { familiar: 0, normal: 0, unfamiliar: 0, none: 0 }; });
+    state.words.forEach((w) => {
+      if (level !== 'all' && w.level !== level) return;
+      const e = state.progress[w.id];
+      const key = e && RATINGS.includes(e.level) ? e.level : 'none';
+      tally[w.category][key]++;
+      tally.all[key]++;
+    });
+    el.recordsBody.textContent = '';
+    CATEGORIES.concat('all').forEach((c) => {
+      const t = tally[c];
+      const tr = document.createElement('tr');
+      if (c === 'all') tr.className = 'sum';
+      const th = document.createElement('th');
+      th.scope = 'row';
+      th.textContent = c === 'all' ? '合計' : CATEGORY_LABEL[c];
+      tr.appendChild(th);
+      ['familiar', 'normal', 'unfamiliar', 'none'].forEach((k) => {
+        const td = document.createElement('td');
+        td.textContent = String(t[k]);
+        tr.appendChild(td);
+      });
+      el.recordsBody.appendChild(tr);
+    });
+  }
+
   function renderStats() {
+    renderRecords();
     const ids = new Set(state.words.map((w) => w.id));
     let known = 0;
     let fav = 0;
@@ -503,23 +537,31 @@
   function emptyDeckMessage() {
     const f = state.filters;
     if (f.range === 'favorites') {
-      return { title: '還沒有符合條件的收藏單字', body: '先把範圍切回「全部單字」，在卡片上按「☆ 收藏」，之後就能只練習收藏。' };
+      return { title: '還沒有符合條件的收藏單字', body: '先到「篩選」把範圍切回「全部」，在卡片上按「☆ 收藏」，之後就能只練習收藏。' };
     }
     if (f.range === 'notfamiliar') {
-      return { title: '這個條件下的單字都已熟悉', body: '可以把範圍改成「全部單字」複習，或換一個程度與分類。' };
+      return { title: '這個條件下的單字都已熟悉', body: '可以到「篩選」把範圍改成「全部」複習，或換一個程度與分類。' };
     }
     return { title: '沒有符合條件的單字', body: '目前的程度與分類組合沒有資料，請換一個篩選條件。' };
   }
 
   function render() {
     renderStats();
+    updateDeckInfo();
     el.btnReshuffle.disabled = !state.filters.shuffle || state.deck.length < 2;
 
     const word = currentWord();
     if (!word) {
       el.study.hidden = true;
       const msg = emptyDeckMessage();
-      showNotice({ title: msg.title, body: msg.body, actions: [{ label: '重設篩選', onClick: resetFilters }] });
+      showNotice({
+        title: msg.title,
+        body: msg.body,
+        actions: [
+          { label: '前往篩選', onClick: () => showTab('filters') },
+          { label: '重設篩選', onClick: resetFilters }
+        ]
+      });
       return;
     }
     clearNotice();
@@ -616,7 +658,6 @@
   function flip() {
     const w = currentWord();
     if (!w) return;
-    el.filtersBox.open = false;
     setFlipped(!state.flipped, true);
     if (state.flipped) {
       markPracticed(w.id);
@@ -627,7 +668,6 @@
   function move(step) {
     const n = state.deck.length;
     if (n < 2) return;
-    el.filtersBox.open = false;
     state.index = (state.index + step + n) % n;
     state.flipped = false;
     if (TTS) speechSynthesis.cancel();
@@ -667,17 +707,21 @@
     el.fCategory.value = state.filters.category;
     el.fRange.value = state.filters.range;
     el.fShuffle.checked = state.filters.shuffle;
-    updateFilterSummary();
   }
 
   const LEVEL_SUMMARY = { all: '全部程度', N5: 'N5', N4: 'N4' };
   const RANGE_SUMMARY = { all: '', notfamiliar: '尚未熟悉', favorites: '收藏' };
-  function updateFilterSummary() {
+  function filterSummaryText() {
     const f = state.filters;
     const parts = [LEVEL_SUMMARY[f.level], f.category === 'all' ? '全部分類' : CATEGORY_LABEL[f.category]];
     if (RANGE_SUMMARY[f.range]) parts.push(RANGE_SUMMARY[f.range]);
     if (f.shuffle) parts.push('隨機');
-    el.filterSummary.textContent = parts.join('・');
+    return parts.join('・');
+  }
+
+  function updateDeckInfo() {
+    el.deckCount.textContent = `符合條件：${state.deck.length} 張`;
+    el.deckSummary.textContent = `${filterSummaryText()}（${state.deck.length} 張）`;
   }
 
   function onFilterChange() {
@@ -688,7 +732,6 @@
       shuffle: el.fShuffle.checked
     };
     saveFilters();
-    updateFilterSummary();
     buildDeck();
   }
 
@@ -748,6 +791,22 @@
   }
 
   /* ------------------------------------------------------------------
+   * 分頁
+   * ------------------------------------------------------------------ */
+  const TAB_TITLES = { card: '字卡', filters: '篩選', records: '進度記錄', status: '狀態' };
+  let currentTab = 'card';
+
+  function showTab(name) {
+    if (!TAB_TITLES[name]) return;
+    currentTab = name;
+    el.views.forEach((v) => { v.hidden = v.id !== `view-${name}`; });
+    el.tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === name)));
+    el.tabTitle.textContent = TAB_TITLES[name];
+    if (name !== 'card' && TTS) speechSynthesis.cancel();
+    if (name === 'records') renderRecords();
+  }
+
+  /* ------------------------------------------------------------------
    * 初始化
    * ------------------------------------------------------------------ */
   function init() {
@@ -755,6 +814,7 @@
     el.demoBadge.hidden = meta.isDemo !== true;
     el.footerNote.textContent = buildFooterNote(meta);
 
+    el.storageState.textContent = storage.available ? '儲存在這個瀏覽器（可用）' : '無法儲存（LocalStorage 不可用）';
     syncFilterControls();
     buildDeck();
 
@@ -778,12 +838,15 @@
     const p = document.createElement('p');
     p.className = 'inline-warning';
     p.textContent = text;
-    el.footerNote.parentElement.insertBefore(p, el.footerNote);
+    el.warnings.appendChild(p);
   }
 
   function bindEvents() {
     [el.fLevel, el.fCategory, el.fRange, el.fShuffle].forEach((c) => c.addEventListener('change', onFilterChange));
     el.btnReshuffle.addEventListener('click', buildDeck);
+    el.btnGoCard.addEventListener('click', () => showTab('card'));
+    el.rLevel.addEventListener('change', renderRecords);
+    el.tabs.forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
 
     // 點卡片空白處翻面（按鈕除外）
     el.card.addEventListener('click', (e) => {
@@ -822,7 +885,7 @@
     });
 
     document.addEventListener('keydown', (e) => {
-      if (el.study.hidden) return;
+      if (currentTab !== 'card' || el.study.hidden) return;
       const tag = (e.target && e.target.tagName) || '';
       if (['SELECT', 'INPUT', 'TEXTAREA', 'BUTTON'].includes(tag)) {
         if (e.key === 'ArrowLeft' && tag === 'BUTTON') { e.preventDefault(); move(-1); }

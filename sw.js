@@ -1,7 +1,7 @@
 /* ことば卡 Service Worker（網路優先：有網路時載入最新版，離線時使用快取）
  * 所有路徑皆相對於 sw.js 所在位置，因此可在 GitHub Pages 子路徑（/repo-name/）運作。
  * 新增檔案時請加進 SHELL，並調高 CACHE_VERSION。 */
-const CACHE_VERSION = 'kotobaka-v4';
+const CACHE_VERSION = 'kotobaka-v5';
 const SHELL = [
   './',
   'index.html',
