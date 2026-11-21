@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ことば卡">
+  <rect width="512" height="512" fill="#24406a"/>
+  <rect x="72" y="72" width="368" height="368" rx="46" fill="#f1f4f5"/>
+  <rect x="108" y="123" width="8" height="266" fill="#6f8f4e"/>
+  <text x="270" y="338" font-size="215" text-anchor="middle" fill="#24406a" font-family="'Noto Serif JP','Hiragino Mincho ProN','Yu Mincho',serif" font-weight="700">こ</text>
+</svg>

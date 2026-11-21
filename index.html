@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ことば卡｜日文單字翻卡</title>
+  <meta name="description" content="手機優先的 N5／N4 日文單字翻卡練習">
+  <meta name="theme-color" content="#24406a" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1b2b44" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ことば卡">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand" lang="ja">ことば卡</h1>
+    <p class="demo-badge" id="demoBadge" hidden>示範資料</p>
+  </header>
+
+  <main class="page">
+    <section class="stats" aria-label="學習統計">
+      <div class="stat"><span class="stat-num" id="statToday">0</span><span class="stat-label">今日練習</span></div>
+      <div class="stat"><span class="stat-num" id="statTotal">0</span><span class="stat-label">總卡片</span></div>
+      <div class="stat"><span class="stat-num" id="statKnown">0</span><span class="stat-label">已熟悉</span></div>
+      <div class="stat"><span class="stat-num" id="statFav">0</span><span class="stat-label">收藏</span></div>
+    </section>
+
+    <details class="filters-box" id="filtersBox">
+      <summary><span class="sum-label">篩選</span><span class="sum-value" id="filterSummary">全部</span></summary>
+      <section class="filters" aria-label="篩選條件">
+        <label class="field">
+          <span>程度</span>
+          <select id="fLevel">
+            <option value="all">全部</option>
+            <option value="N5">N5</option>
+            <option value="N4">N4</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>分類</span>
+          <select id="fCategory">
+            <option value="all">全部</option>
+            <option value="kanji">漢字</option>
+            <option value="hiragana">平假名（含漢字）</option>
+            <option value="katakana">片假名</option>
+          </select>
+        </label>
+        <label class="field wide">
+          <span>抽卡範圍</span>
+          <select id="fRange">
+            <option value="all">全部</option>
+            <option value="notfamiliar">尚未熟悉</option>
+            <option value="favorites">只練習收藏</option>
+          </select>
+        </label>
+        <div class="shuffle-field">
+          <label class="check"><input type="checkbox" id="fShuffle"> 隨機順序</label>
+          <button type="button" class="btn small" id="btnReshuffle" disabled>重新洗牌</button>
+        </div>
+      </section>
+    </details>
+
+    <div id="notice" class="notice" role="status" hidden></div>
+
+    <section id="study" class="study" aria-label="翻卡練習" hidden>
+      <p class="progress" id="progressText" aria-live="polite"></p>
+
+      <div class="card" id="card">
+        <div class="card-inner">
+          <div class="face front" id="faceFront" role="button" tabindex="0" aria-label="卡片正面，按下翻面">
+            <span class="tag" id="frontTag"></span>
+            <p class="word" id="frontWord" lang="ja"></p>
+            <p class="hint">點一下翻面</p>
+          </div>
+
+          <div class="face back" id="faceBack" inert>
+            <div class="back-head">
+              <div class="back-top">
+                <span class="tag" id="backTag"></span>
+                <button type="button" class="btn small" id="btnFlipBack">翻回正面</button>
+              </div>
+              <div class="reading-row">
+                <p class="reading" id="backReading" lang="ja"></p>
+                <button type="button" class="speak" id="btnSpeakReading" aria-label="朗讀讀音" title="朗讀讀音">🔊</button>
+              </div>
+              <div class="sub-row">
+                <p class="word-small" id="backWord" lang="ja"></p>
+                <p class="romaji" id="backRomaji"></p>
+              </div>
+            </div>
+            <dl class="details">
+              <dt>中文意思</dt><dd id="backMeaning"></dd>
+              <dt class="row-kanji">音讀</dt><dd class="row-kanji" id="backOn" lang="ja"></dd>
+              <dt class="row-kanji">訓讀</dt><dd class="row-kanji" id="backKun" lang="ja"></dd>
+              <dt class="row-kanji">常見單字</dt>
+              <dd class="row-kanji">
+                <ul class="related" id="backRelated"></ul>
+                <span class="kun-note">訓讀的「.」之前是詞幹、之後是送假名；「-」表示接在其他詞的前後。</span>
+              </dd>
+              <dt class="row-word">英文詞性</dt><dd class="row-word" id="backMeaningEn"></dd>
+              <dt class="row-word">例句</dt>
+              <dd class="row-word">
+                <span class="example" id="backExample" lang="ja"></span>
+                <span class="example-zh" id="backExampleZh"></span>
+                <span class="example-tools">
+                  <button type="button" class="speak" id="btnSpeakExample" aria-label="朗讀例句" title="朗讀例句">🔊</button>
+                  <button type="button" class="btn small" id="btnFurigana" aria-pressed="true">假名：顯示</button>
+                </span>
+              </dd>
+              <dt class="row-word" id="notesLabel">外語來源</dt><dd class="row-word" id="backNotes"></dd>
+            </dl>
+            <p class="source" id="backSource"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rate" role="group" aria-label="標記熟悉程度">
+        <button type="button" class="btn rate-btn" data-level="unfamiliar" aria-pressed="false">不熟悉</button>
+        <button type="button" class="btn rate-btn" data-level="normal" aria-pressed="false">普通</button>
+        <button type="button" class="btn rate-btn" data-level="familiar" aria-pressed="false">已熟悉</button>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn" id="btnPrev">上一張</button>
+        <button type="button" class="btn fav-btn" id="btnFav" aria-pressed="false">☆ 收藏</button>
+        <button type="button" class="btn primary" id="btnNext">下一張</button>
+      </div>
+    </section>
+
+    <section class="backup" aria-label="備份">
+      <h2>備份學習紀錄</h2>
+      <p>紀錄只存在這個瀏覽器，換手機或清除瀏覽資料前請先匯出。</p>
+      <div class="backup-actions">
+        <button type="button" class="btn small" id="btnExport">匯出紀錄</button>
+        <button type="button" class="btn small" id="btnImport">匯入紀錄</button>
+        <input type="file" id="fileImport" accept="application/json,.json" hidden>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p id="footerNote">資料載入中…</p>
+    
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
