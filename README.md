@@ -1,4 +1,4 @@
-# ことば卡
+# 單字卡
 
 手機優先的 N5／N4 日文翻卡 PWA。純 HTML／CSS／JavaScript，沒有後端、框架或資料庫，可直接部署到 GitHub Pages。
 
@@ -64,7 +64,7 @@ python3 -m http.server 8000
    ```bash
    git init
    git add .
-   git commit -m "ことば卡"
+   git commit -m "單字卡"
    git branch -M main
    git remote add origin https://github.com/<帳號>/kotobaka.git
    git push -u origin main
@@ -72,7 +72,7 @@ python3 -m http.server 8000
 3. Repository 的 **Settings → Pages**：Source 選 **Deploy from a branch**，Branch 選 `main`、資料夾 `/ (root)`。
 4. 稍等一兩分鐘，開啟 `https://<帳號>.github.io/kotobaka/`。
 
-Service Worker 採「網路優先」：有網路時載入最新版，離線時用快取。更新後重新部署即可；若新增檔案，請加進 `sw.js` 的 `SHELL` 並調高 `CACHE_VERSION`（目前為 `kotobaka-v5`）。
+Service Worker 採「網路優先」：有網路時載入最新版，離線時用快取。更新後重新部署即可；若新增檔案，請加進 `sw.js` 的 `SHELL` 並調高 `CACHE_VERSION`（目前為 `kotobaka-v6`）。
 
 ## 畫面與分頁（針對 320×480 小手機）
 
@@ -92,6 +92,10 @@ Service Worker 採「網路優先」：有網路時載入最新版，離線時�
 - 翻面為簡單的轉入動畫（不使用 3D 疊層），避免部分手機瀏覽器卡片內無法捲動。
 - 按鈕高度約 40–44px，下拉選單字體維持 16px 以避免 iOS 自動放大。
 - 切換到其他分頁時會停止正在朗讀的語音。
+
+## 圖示
+
+圖示為日本國旗（白底紅圓）加上下方的「JLPT」字樣，底色為藍色。`icons/icon.svg` 是原始檔，文字已轉成路徑，不依賴字型；PNG 各尺寸（32、180、192、512 與 maskable）由它輸出。maskable 版本內容縮小到安全範圍，避免被手機的圓形或圓角遮罩裁掉。
 
 ## 安裝到手機
 

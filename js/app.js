@@ -228,7 +228,7 @@
       clearNotice();
       init();
     } catch (err) {
-      console.error('[ことば卡] 載入單字失敗：', err);
+      console.error('[單字卡] 載入單字失敗：', err);
       showNotice({
         title: '無法載入單字資料',
         body: `${err.message}。請確認網路連線；若是直接以 file:// 開啟，瀏覽器會阻擋 fetch，請改用本機伺服器預覽（見 README）。`,
@@ -769,7 +769,7 @@
     try {
       const data = JSON.parse(await file.text());
       if (!data || data.app !== 'kotobaka' || !data.progress || typeof data.progress !== 'object') {
-        throw new Error('不是ことば卡的備份檔');
+        throw new Error('不是單字卡的備份檔');
       }
       let merged = 0;
       Object.keys(data.progress).forEach((id) => {
@@ -783,7 +783,7 @@
       buildDeck();
       toast(`已匯入 ${merged} 筆紀錄`);
     } catch (err) {
-      console.error('[ことば卡] 匯入失敗：', err);
+      console.error('[單字卡] 匯入失敗：', err);
       toast(`匯入失敗：${err.message}`);
     } finally {
       el.fileImport.value = '';
@@ -902,7 +902,7 @@
     if (!('serviceWorker' in navigator)) return;
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch((err) => console.warn('[ことば卡] Service Worker 註冊失敗：', err));
+      navigator.serviceWorker.register('sw.js').catch((err) => console.warn('[單字卡] Service Worker 註冊失敗：', err));
     });
   }
 
